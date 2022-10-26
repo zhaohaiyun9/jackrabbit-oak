@@ -127,6 +127,21 @@ public enum RDBBlobStoreDB {
         }
     },
 
+    DAMENG("DM DBMS", RDBCommonVendorSpecificCode.DAMENG) {
+
+        @Override
+        public String checkVersion(DatabaseMetaData md) throws SQLException {
+            return RDBJDBCTools.versionCheck(md, 8, -1, description);
+        }
+
+        @Override
+        public String getDataTableCreationStatement(String tableName) {
+            return "create table " + tableName + " (ID varchar(" + RDBBlobStore.IDSIZE + ") not null primary key, DATA blob("
+                    + MINBLOB + "))";
+        }
+
+    },
+
     DEFAULT("default", RDBCommonVendorSpecificCode.DEFAULT) {
     };
 

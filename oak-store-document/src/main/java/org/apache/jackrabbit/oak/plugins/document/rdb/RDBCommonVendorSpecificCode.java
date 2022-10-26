@@ -51,7 +51,8 @@ public enum RDBCommonVendorSpecificCode {
                 String conSchema = ch.getSchema(con);
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("SELECT CODEPAGE, COLLATIONSCHEMA, COLLATIONNAME, TABSCHEMA FROM SYSCAT.COLUMNS WHERE COLNAME=? and COLNO=0 AND UPPER(TABNAME)=UPPER(?)");
+                sb.append(
+                        "SELECT CODEPAGE, COLLATIONSCHEMA, COLLATIONNAME, TABSCHEMA FROM SYSCAT.COLUMNS WHERE COLNAME=? and COLNO=0 AND UPPER(TABNAME)=UPPER(?)");
                 if (conSchema != null) {
                     conSchema = conSchema.trim();
                     sb.append(" AND UPPER(TABSCHEMA)=UPPER(?)");
@@ -162,7 +163,8 @@ public enum RDBCommonVendorSpecificCode {
                 con = ch.getROConnection();
                 stmt = con.createStatement();
                 rs = stmt
-                        .executeQuery("SELECT PARAMETER, VALUE from NLS_DATABASE_PARAMETERS WHERE PARAMETER IN ('NLS_COMP', 'NLS_CHARACTERSET')");
+                        .executeQuery(
+                                "SELECT PARAMETER, VALUE from NLS_DATABASE_PARAMETERS WHERE PARAMETER IN ('NLS_COMP', 'NLS_CHARACTERSET')");
                 while (rs.next()) {
                     result.put(rs.getString(1), rs.getString(2));
                 }
@@ -179,6 +181,37 @@ public enum RDBCommonVendorSpecificCode {
         }
     },
 
+    DAMENG() {
+
+        @Override
+        public @NotNull Map<String, String> getAdditionalDiagnostics(RDBConnectionHandler ch, String tableName) {
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            Map<String, String> result = new HashMap<>();
+            try {
+                con = ch.getROConnection();
+                stmt = con.createStatement();
+                rs = stmt.executeQuery(
+                        "SELECT CASE UNICODE() WHEN 0 THEN 'GB18030' WHEN 1 THEN 'UTF-8' WHEN 2 THEN 'EUC-KR' END, CASE CASE_SENSITIVE() WHEN 0 THEN 'no' WHEN 1 THEN 'yes' END");
+                while (rs.next()) {
+                    result.put("encoding", rs.getString(1));
+                    result.put("case-sensitive", rs.getString(2));
+                }
+                stmt.close();
+                con.commit();
+            } catch (SQLException ex) {
+                LOG.debug("while getting diagnostics", ex);
+            } finally {
+                closeResultSet(rs);
+                closeStatement(stmt);
+                ch.closeConnection(con);
+            }
+            return result;
+        }
+
+    },
+
     POSTGRES() {
         @Override
         public Map<String, String> getAdditionalDiagnostics(RDBConnectionHandler ch, String tableName) {
@@ -189,7 +222,8 @@ public enum RDBCommonVendorSpecificCode {
             try {
                 con = ch.getROConnection();
                 String cat = con.getCatalog();
-                stmt = con.prepareStatement("SELECT pg_encoding_to_char(encoding), datcollate FROM pg_database WHERE datname=?");
+                stmt = con.prepareStatement(
+                        "SELECT pg_encoding_to_char(encoding), datcollate FROM pg_database WHERE datname=?");
                 stmt.setString(1, cat);
                 rs = stmt.executeQuery();
                 while (rs.next()) {

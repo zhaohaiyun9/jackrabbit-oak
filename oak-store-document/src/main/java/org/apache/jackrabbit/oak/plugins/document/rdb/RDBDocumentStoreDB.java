@@ -519,6 +519,51 @@ public enum RDBDocumentStoreDB {
         }
     },
 
+    DAMENG("DM DBMS", RDBCommonVendorSpecificCode.DAMENG) {
+
+        @Override
+        public String checkVersion(DatabaseMetaData md) throws SQLException {
+            return RDBJDBCTools.versionCheck(md, 8, -1, description);
+        }
+
+        @Override
+        public FETCHFIRSTSYNTAX getFetchFirstSyntax() {
+            return FETCHFIRSTSYNTAX.LIMIT;
+        }
+
+        @Override
+        public String getCurrentTimeStampInSecondsSyntax() {
+            return "select unix_timestamp(current_timestamp())";
+        }
+
+        @Override
+        public PreparedStatementComponent getConcatQuery(final String appendData, final int dataOctetLimit) {
+            return new PreparedStatementComponent() {
+
+                @Override
+                public String getStatementComponent() {
+                    return "CONCAT(DATA, ?)";
+                }
+
+                @Override
+                public int setParameters(PreparedStatement stmt, int startIndex) throws SQLException {
+                    stmt.setString(startIndex++, appendData);
+                    return startIndex;
+                }
+            };
+        }
+
+        @Override
+        public String getTableCreationStatement(String tableName, int schema) {
+            return "create table " + tableName
+                    + " (ID varchar(512) not null primary key, MODIFIED bigint, HASBINARY smallint, DELETEDONCE smallint, MODCOUNT bigint, CMODCOUNT bigint, DSIZE bigint, "
+                    + (schema >= 1 ? "VERSION smallint, " : "")
+                    + (schema >= 2 ? "SDTYPE smallint, SDMAXREVTIME bigint, " : "")
+                    + "DATA varchar(16384), BDATA blob(" + 1024 * 1024 * 1024 + ")) storage (using long row)";
+        }
+    
+    },
+
     MSSQL("Microsoft SQL Server", RDBCommonVendorSpecificCode.MSSQL) {
         @Override
         public String checkVersion(DatabaseMetaData md) throws SQLException {
