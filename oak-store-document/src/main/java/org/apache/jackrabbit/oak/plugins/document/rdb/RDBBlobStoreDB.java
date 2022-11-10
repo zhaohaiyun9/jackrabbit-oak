@@ -136,8 +136,7 @@ public enum RDBBlobStoreDB {
 
         @Override
         public String getDataTableCreationStatement(String tableName) {
-            return "create table " + tableName + " (ID varchar(" + RDBBlobStore.IDSIZE + ") not null primary key, DATA blob("
-                    + MINBLOB + "))";
+            return "create table " + tableName + " (ID varchar(" + RDBBlobStore.IDSIZE + ") not null primary key, DATA blob)";
         }
 
     },

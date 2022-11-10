@@ -556,10 +556,10 @@ public enum RDBDocumentStoreDB {
         @Override
         public String getTableCreationStatement(String tableName, int schema) {
             return "create table " + tableName
-                    + " (ID varchar(512) not null primary key, MODIFIED bigint, HASBINARY smallint, DELETEDONCE smallint, MODCOUNT bigint, CMODCOUNT bigint, DSIZE bigint, "
+                    + " (ID varchar(1024) not null primary key, MODIFIED bigint, HASBINARY smallint, DELETEDONCE smallint, MODCOUNT bigint, CMODCOUNT bigint, DSIZE bigint, "
                     + (schema >= 1 ? "VERSION smallint, " : "")
                     + (schema >= 2 ? "SDTYPE smallint, SDMAXREVTIME bigint, " : "")
-                    + "DATA varchar(16384), BDATA blob(" + 1024 * 1024 * 1024 + ")) storage (using long row)";
+                    + "DATA clob, BDATA blob)";
         }
     
     },
